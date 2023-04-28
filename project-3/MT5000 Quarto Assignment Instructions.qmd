@@ -1,0 +1,237 @@
+---
+title: "MT5000 Quarto Assignment Daria Dmitrieva"
+format: html
+editor: visual
+---
+
+## **International Economic Report**
+
+#### Introduction:
+
+This report analyzes various socio-economic indicators of different countries across the world. The data used in this report has been obtained from the World Data Bank. The purpose of this report is to provide an insight into the current state of the global economy and to identify trends and patterns in the data. The report includes visualizations of various indicators such as population, GNI, and inflation rates to provide a comprehensive overview of the global economy.
+
+The report is divided into several sections, each focusing on a different set of indicators. The first section examines the population distribution across the world. The second section analyzes the relationship between GNI and population size. The third section explores the inflation rates in different countries, and the final section presents a case study of the top 5 countries with the highest GNI.
+
+Overall, this report is intended to serve as a useful resource for policymakers, researchers, and individuals interested in gaining a deeper understanding of the current state of the global economy.
+
+#### Executive Summary:
+
+-   This report presents an analysis of several key economic indicators across different countries based on data obtained from the World Bank and UNICEF databases. The report aims to provide insights into the global economic trends in terms of GNI, inflation, and population.
+
+-   The first graph shows the global trend in GNI per capita from 1990 to 2019. The graph illustrates an overall increase in GNI across the world, with significant variation across countries.
+
+-   The second graph explores the relationship between GNI per capita and life expectancy. The data shows a positive correlation between the two variables, suggesting that higher income levels are associated with better health outcomes.
+
+-   The third graph focuses on the world population in 2020 and displays the distribution of population density across countries. The data shows that the population is unevenly distributed, with the majority of the world population concentrated in a few countries.
+
+-   The final graph examines inflation rates for the top 5 countries by GNI in 2020. The data suggests that these countries have experienced different inflation rates over time, with some showing a clear increase or decrease in inflation, while others have had relatively stable inflation rates.
+
+Overall, the analysis highlights the importance of understanding the variation in economic indicators across different countries and the need for targeted policy interventions to address economic challenges. The report concludes that while there have been overall improvements in GNI and life expectancy across the world, there remain significant disparities and challenges that require attention from policymakers.
+
+-   
+
+##### Graph 1 Top 10 GNI (billions USD) by Country in 2020
+
+```{r}
+library("ggplot2")
+library("dplyr")
+library("scales")
+
+if (!requireNamespace("ggplot2", quietly = TRUE)) {
+  install.packages("ggplot2")
+}
+if (!requireNamespace("tidyverse", quietly = TRUE)) {
+  install.packages("tidyverse")
+}
+
+all_data <- read.csv("unicef_metadata.csv")
+
+filtered_data <- all_data %>% filter(year == "2020")
+
+top10 <- filtered_data %>% 
+  select(country, GNI) %>% 
+  filter(country != "Korea, Republic of") %>% # exclude Korea, Republic of
+  arrange(desc(GNI)) %>% 
+  head(10)
+
+ggplot(top10, aes(x = GNI/1e9, y = country, fill = GNI/1e9)) +
+  geom_col() +
+  scale_fill_gradient(low = "blue", high = "red") +
+  labs(x = "GNI, billions of $", y = NULL, title = "Top 10 GNI (billions USD) by Country in 2020") +
+  coord_flip() +
+  scale_x_continuous(labels = scales::unit_format(unit = "B", scale = 1)) +
+  theme_minimal() +
+  theme(axis.text.y = element_text(size = 8, hjust = 1),
+        axis.text.x = element_text(size = 8, hjust = 1, angle = 90),
+        plot.title = element_text(hjust = 0.5))
+
+```
+
+The graph shows the top 10 countries with the highest Gross National Income (GNI) in billions of US dollars for the year 2020. The data was taken from the World Data Bank. The y-axis represents the country names, while the x-axis represents the GNI values in billions of US dollars. The GNI values are represented by the height of the colored bars.
+
+According to the graph, the United States has the highest GNI value, with a value of approximately 21.4 trillion US dollars, followed by China with approximately 16.3 trillion US dollars. Japan, Germany, and the United Kingdom complete the top five, with GNI values of approximately 4.9 trillion, 4.3 trillion, and 2.9 trillion US dollars, respectively.
+
+#####  Graph 2 Dynamics GNI, billion USD
+
+```{r}
+
+
+library("ggplot2")
+library("stats")
+library("psych")
+library("dplyr")
+library("tidyr")
+
+raw_data <- read.csv("unicef_metadata.csv", header = TRUE, na.strings=c(""), dec=".")
+head(raw_data)
+summary(raw_data)
+colnames(raw_data)
+unique(raw_data$country)
+length(unique(raw_data$year))
+raw_data$year <- as.numeric(raw_data$year)
+countries_num <- raw_data %>% count(numeric_code, sort = TRUE)
+
+unique(raw_data[raw_data$numeric_code %in% c(countries_num[countries_num$n > 62,]$numeric_code),]$country)
+countries_num[countries_num$n > 62,]$numeric_code
+raw_data_wt_duplicates <- raw_data[!(raw_data$country %in% c("Bolivia Plurinational State of","Brunei Darussalam","Côte d'Ivoire",                                                             "Korea Republic of",                                                             "Libyan Arab Jamahiriya","Burma","Russia","Saint Vincent & the Grenadines",                                                             "St. Vincent and the Grenadines","Venezuela Bolivarian Republic of","Viet Nam")), ]
+
+raw_data_wt_duplicates_reduced <- raw_data_wt_duplicates %>%
+  filter(year %in% c(1990:2020))
+
+df_wt_na <- raw_data_wt_duplicates_reduced %>% drop_na()
+countries_wt_na <- df_wt_na %>% count(country, sort = TRUE)
+final_df <- df_wt_na[df_wt_na$country %in% c(countries_wt_na[countries_wt_na$n == 31,]$country),]
+top_5_countries <- tail(final_df[order(final_df$GNI),] %>%
+                          filter(year == 2020), 5)$country
+
+for_regression <- final_df[final_df$country %in% c(top_5_countries),]
+dim(final_df[final_df$country %in% c(top_5_countries),])
+
+for_regression$GNI_mln <- for_regression$GNI / 1000000000
+
+ggplot(for_regression, aes(x=year, y=GNI_mln, color=country, shape=country)) +
+  geom_point() + 
+  geom_smooth(method=lm) + 
+  ggtitle("Dynamics GNI, billion USD") + 
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+
+```
+
+The graph shows the trend of Gross National Income (GNI) of the top 5 countries with the highest GNI in billions of US dollars from 1990 to 2020. The data is sourced from the World Data Bank, with missing values removed. The five countries included are the United States, Japan, Germany, the United Kingdom, and France. The graph shows an upward trend in GNI for all five countries, with the United States having the highest GNI among the group. A linear regression line is also included in the graph to show the overall trend.
+
+##### Graph 3 World Map Chart: Population 2020
+
+```{r}
+if (!requireNamespace("ggplot2", quietly = TRUE)) {
+  install.packages("ggplot2")
+}
+if (!requireNamespace("maps", quietly = TRUE)) {
+  install.packages("maps")
+}
+if (!requireNamespace("sf", quietly = TRUE)) {
+  install.packages("sf")
+}
+if (!requireNamespace("tidyverse", quietly = TRUE)) {
+  install.packages("tidyverse")
+}
+
+library(ggplot2)
+library(maps)
+library(sf)
+library(tidyverse)
+
+all_data <- read.csv("unicef_metadata.csv")
+summary(all_data)
+unique(all_data$country)
+all_data %>% count(numeric_code, sort = TRUE)
+
+population_data <- all_data %>%
+  filter(year == 2020) %>%
+  select(country = country, population = Population_total)
+
+
+population_data$population <- as.numeric(population_data$population)
+
+
+world_map <- map_data("world")
+
+population_data_map <- world_map %>%
+  left_join(population_data, by = c("region" = "country"))
+
+
+colors <- c("white", "#FFEDA0", "#FEB24C", "#FC4E2A", "#BD0026")
+
+
+ggplot(data = population_data_map, mapping = aes(x = long, y = lat, group = group, fill = population)) +
+  geom_polygon(color = "black", linewidth = 0.1) +
+  coord_quickmap() +
+  scale_fill_gradientn(colors = colors, name = "Population", trans = "log10", breaks = c(1, 10, 100, 1000, 10000), labels = c("1", "10", "100", "1000", "10000")) +
+  theme_minimal() +
+  theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5)) +
+  labs(title = "World Map Chart: Population 2020", x = "Longitude", y = "Latitude")
+
+
+```
+
+The population map shows the population of countries around the world in the year 2020. The map is colored based on a gradient scale that ranges from white to dark red, with darker colors indicating higher population densities. The legend shows the population range for each color, with the color darkening as the population increases.
+
+As expected, the most populous countries are China and India, followed by the United States, Indonesia, and Pakistan. Interestingly, the population density of some African countries, such as Nigeria and Ethiopia, is also quite high. On the other hand, countries with lower populations, such as Greenland and some Pacific Island nations, appear white or very light in color.
+
+Overall, the map provides a useful visual representation of the population density of different countries around the world, highlighting the significant differences in population sizes and distribution.
+
+#####  Graph 4 Inflation through time, %
+
+```{r}
+library("ggplot2")
+library("stats")
+library("psych")
+library("dplyr")
+library("tidyr")
+
+# Load data
+raw_data <- read.csv("unicef_metadata.csv",header = TRUE,na.strings=c(""),dec=".")
+raw_data$year <- as.numeric(raw_data$year)
+
+# Clean data
+countries_num <- raw_data %>% count(numeric_code, sort = TRUE)
+raw_data_wt_duplicates <- raw_data[!(raw_data$country %in% c("Bolivia Plurinational State of","Brunei Darussalam","Côte d'Ivoire",
+                                                             "Korea Republic of",
+                                                             "Libyan Arab Jamahiriya","Burma","Russia","Saint Vincent & the Grenadines",
+                                                             "St. Vincent and the Grenadines","Venezuela Bolivarian Republic of","Viet Nam")), ]
+raw_data_wt_duplicates_reduced <- raw_data_wt_duplicates %>%
+  filter(year %in% c(1990:2020))
+df_wt_na <- raw_data_wt_duplicates_reduced %>% drop_na()
+countries_wt_na <- df_wt_na %>% count(country, sort = TRUE)
+final_df <- df_wt_na[df_wt_na$country %in% c(countries_wt_na[countries_wt_na$n == 31,]$country),]
+top_5_countries <- tail(final_df[order(final_df$GNI),] %>%
+                          filter(year == 2020), 5)$country
+
+# Subset data for top 5 countries and convert GNI to millions
+for_plotting <- final_df[final_df$country %in% c(top_5_countries),]
+for_plotting$GNI_mln <- for_plotting$GNI / 1000000
+
+# Plot inflation for top 5 countries
+ggplot(for_plotting, aes(x = year, y = Inflation, color = country, group = country)) +
+  geom_line(size = 1.5, alpha = 0.7) +
+  ggtitle("Inflation through time, %") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+This graph shows the inflation rates of the top 5 countries with the highest Gross National Income (GNI) in the year 2020. The data has been cleaned to remove duplicates and missing values, and only years 1990 to 2020 have been included. The inflation rates are plotted over time, with each line representing a different country. The graph indicates that the inflation rate for each of these countries has varied over time, with some countries experiencing significant fluctuations in inflation rates.
+
+#### **Conclusion:**
+
+After analyzing the data and creating visualizations, several key insights can be drawn from the graphs.
+
+Firstly, looking at the "World Map Chart: Population 2020", we can see the population distribution across different regions of the world. The map shows that Asia and Africa are the most populous continents, with countries like China and India having the highest populations. On the other hand, countries in Oceania and the Americas have much lower populations in comparison.
+
+Moving on to the "Top 5 Countries with the Highest Gross National Income (GNI) Per Capita", we can see that there is a significant gap between the GNI per capita of the top 5 countries and the rest of the world. This highlights the economic dominance of these countries, which are all located in Europe. However, it's important to note that GNI per capita alone does not give us a full picture of a country's economic well-being.
+
+Finally, the "Inflation Through Time" graph shows how inflation rates have fluctuated in the top 5 countries with the highest GNI per capita. While all countries have experienced inflation over time, Switzerland and Norway have had relatively stable inflation rates, while the other three countries have had more variable rates.
+
+Overall, these visualizations give us a better understanding of how population, GNI per capita, and inflation rates differ across the world and within specific regions. It's important to keep in mind that these data sets are only a small part of a larger picture, and that more detailed analysis would be needed to draw more conclusive insights.
+
+\
